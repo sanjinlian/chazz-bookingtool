@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>且自｜訂位小工具</title>
+  <style>
+    :root {
+      --bg: #FAF8F5;
+      --card: #FFFFFF;
+      --border: #E8E4DC;
+      --border-strong: #C8C2B8;
+      --text: #1A1814;
+      --text-muted: #6B6560;
+      --text-hint: #9C9690;
+      --accent: #2C5F4A;
+      --accent-light: #EAF3EE;
+      --accent-hover: #234D3B;
+      --success: #1A5C38;
+      --success-bg: #E8F5EE;
+      --danger: #8B2A2A;
+      --danger-bg: #FDF0F0;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 80px;
+    }
+
+    .header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 20px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      font-family: Georgia, serif;
+    }
+
+    .logo-sub {
+      font-size: 13px;
+      color: var(--text-hint);
+      letter-spacing: 0.08em;
+    }
+
+    .content {
+      padding: 16px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-hint);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--bg);
+      resize: none;
+      line-height: 1.6;
+      min-height: 180px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+    }
+
+    textarea::placeholder {
+      color: var(--text-hint);
+    }
+
+    .btn-parse {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.2s, transform 0.1s;
+      font-family: inherit;
+      margin-bottom: 12px;
+    }
+
+    .btn-parse:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-parse:active {
+      transform: scale(0.98);
+    }
+
+    .btn-parse:disabled {
+      background: var(--border-strong);
+      cursor: not-allowed;
+    }
+
+    .info-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .info-key {
+      color: var(--text-hint);
+      min-width: 80px;
+      font-size: 12px;
+      padding-top: 1px;
+      flex-shrink: 0;
+    }
+
+    .info-val {
+      color: var(--text);
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .reply-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      font-size: 14px;
+      line-height: 1.9;
+      white-space: pre-wrap;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .cal-title-box {
+      background: var(--accent-light);
+      border: 1px solid #B8DBC8;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--accent);
+      word-break: break-all;
+    }
+
+    .color-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn-action {
+      padding: 12px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      border: 1.5px solid;
+      transition: all 0.15s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      background: transparent;
+    }
+
+    .btn-copy {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-copy:hover {
+      background: var(--accent-light);
+    }
+
+    .btn-copy.copied {
+      border-color: var(--success);
+      color: var(--success);
+      background: var(--success-bg);
+    }
+
+    .btn-cal {
+      border-color: var(--accent);
+      color: #fff;
+      background: var(--accent);
+    }
+
+    .btn-cal:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    .btn-cal:disabled {
+      background: #2E7D52;
+      border-color: #2E7D52;
+      cursor: default;
+    }
+
+    .btn-copy-cal {
+      border-color: var(--border-strong);
+      color: var(--text-muted);
+      grid-column: 1 / -1;
+      font-size: 12px;
+      padding: 9px;
+    }
+
+    .btn-copy-cal:hover {
+      background: var(--bg);
+    }
+
+    .error-msg {
+      background: var(--danger-bg);
+      border: 1px solid #F0AAAA;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--danger);
+      display: none;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    .reset-btn {
+      display: block;
+      width: 100%;
+      padding: 11px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--text-hint);
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+      margin-top: 8px;
+    }
+
+    .reset-btn:hover {
+      background: var(--bg);
+      color: var(--text-muted);
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 12px 0;
+    }
+
+    .auth-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 0 4px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border-strong);
+      flex-shrink: 0;
+    }
+
+    .status-dot.on {
+      background: #2E7D52;
+    }
+
+    .status-text {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .btn-google {
+      width: 100%;
+      padding: 13px;
+      background: var(--card);
+      color: var(--text);
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s;
+    }
+
+    .btn-google:hover {
+      background: var(--bg);
+    }
+
+    .hint-text {
+      font-size: 12px;
+      color: var(--text-hint);
+      line-height: 1.6;
+    }
+
+    #resultBlock {
+      display: none;
+    }
+
+    /* 手動編輯欄位 */
+    .edit-field {
+      border: none;
+      border-bottom: 1px solid var(--border);
+      padding: 4px 2px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: transparent;
+      outline: none;
+      width: 100%;
+      font-weight: 500;
+    }
+
+    .edit-field:focus {
+      border-bottom-color: var(--accent);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <div class="header-inner">
+      <div class="logo">且自</div>
+      <div class="logo-sub">訂位小工具</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="card" id="inputCard">
+      <div class="section-label">貼上客人預約訊息</div>
+      <textarea id="msgInput" placeholder="將客人傳來的訂位訊息貼在這裡…
+
+日期時間：3/28 19:30
+人數（是否有毛孩小孩）：3位 沒有狗狗
+顧客姓名：連子沂
+聯絡方式：0933052049
+包廂／包場需求（有／無）：無"></textarea>
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+
+    <div class="card" id="authCard">
+      <div class="section-label">Google 日曆授權</div>
+      <button class="btn-google" id="authBtn" onclick="handleAuth()">
+        <svg width="16" height="16" viewBox="0 0 24 24">
+          <path
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            fill="#4285F4" />
+          <path
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            fill="#34A853" />
+          <path
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+            fill="#FBBC05" />
+          <path
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            fill="#EA4335" />
+        </svg>
+        連結 Google 帳號
+      </button>
+      <div class="auth-row">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">尚未連結</span>
+      </div>
+    </div>
+
+    <button class="btn-parse" id="parseBtn" onclick="parseMessage()">✦ 解析並整理訂位</button>
+
+    <div id="resultBlock">
+
+      <div class="card">
+        <div class="section-label">訂位資訊確認（可點擊修改）</div>
+        <div id="infoRows"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-label">Line 回覆訊息</div>
+        <div class="reply-box" id="replyText"></div>
+        <div class="action-row">
+          <button class="btn-action btn-copy" id="copyReplyBtn" onclick="copyReply()">複製訊息</button>
+          <button class="btn-action btn-cal" id="calBtn" onclick="addToCalendar()">新增日曆</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-label">Google 日曆標題</div>
+        <div class="cal-title-box" id="calTitle"></div>
+        <div id="colorBadge"></div>
+        <div class="divider"></div>
+        <div class="hint-text">每天 10:30 提醒已自動設定。</div>
+        <div class="action-row">
+          <button class="btn-action btn-copy-cal" onclick="copyCalTitle()">複製標題文字</button>
+        </div>
+      </div>
+
+      <button class="reset-btn" onclick="resetAll()">↺ 重新輸入新訂位</button>
+    </div>
+
+  </div>
+
+  <script>
+    // ── 填入你的 Google OAuth Client ID ──────────────────────
+    const CLIENT_ID = '379639089450-4gc29hnko2sqruj6gva3u8qm7462m0pn.apps.googleusercontent.com';
+    // ────────────────────────────────────────────────────────
+
+    const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+    let tokenClient = null;
+    let accessToken = null;
+    let D = {}; // parsed data
+
+    // ── Google Auth ──────────────────────────────────────────
+    function initGoogleAuth() {
+      if (typeof google === 'undefined' || !google.accounts) { setTimeout(initGoogleAuth, 300); return; }
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: (resp) => {
+          if (resp.error) { showError('Google 授權失敗：' + resp.error); return; }
+          accessToken = resp.access_token;
+          document.getElementById('statusDot').classList.add('on');
+          document.getElementById('statusText').textContent = '已連結 Google 帳號';
+          const btn = document.getElementById('authBtn');
+          btn.innerHTML = '✓ 已授權';
+          btn.disabled = true;
+          btn.style.color = 'var(--success)';
+          btn.style.borderColor = '#2E7D52';
+        }
+      });
+    }
+    function handleAuth() {
+      if (!tokenClient) { showError('初始化中，請稍後再試'); return; }
+      tokenClient.requestAccessToken();
+    }
+    const gis = document.createElement('script');
+    gis.src = 'https://accounts.google.com/gsi/client';
+    gis.onload = initGoogleAuth;
+    document.head.appendChild(gis);
+
+    // ── Local Parse ───────────────────────────────────────────
+    function parseMessage() {
+      const msg = document.getElementById('msgInput').value.trim();
+      if (!msg) { showError('請先貼上客人的訂位訊息'); return; }
+      hideError();
+
+      // 抓各欄位
+      const dateTimeRaw = extractField(msg, ['日期時間', '時間', '日期']);
+      const guestsRaw = extractField(msg, ['人數']);
+      const nameRaw = extractField(msg, ['顧客姓名', '姓名', '名字']);
+      const phoneRaw = extractField(msg, ['聯絡方式', '電話', '手機']);
+      const roomRaw = extractField(msg, ['包廂', '包場', '包廂／包場需求', '包廂/包場需求']);
+
+      // 解析日期時間
+      const { date, time } = parseDatetime(dateTimeRaw);
+
+      // 解析人數
+      const guestsMatch = (guestsRaw || msg).match(/(\d+)\s*位/);
+      const guests = guestsMatch ? guestsMatch[1] : extractDigits(guestsRaw);
+
+      // 特殊需求偵測（排除「無/沒/沒有/不」等否定句，避免「沒有狗狗」被誤判）
+      // 同時過清掉固定版型裡的提示文字，如「（是否有毛孩小孩）」
+      const fullText = msg.toLowerCase()
+        .replace(/[\(（]是否有毛孩小孩[\)）]/g, '')
+        .replace(/[\(（]有[／\/]無[\)）]/g, '');
+
+      const posMsg = fullText.replace(/(?:無|沒|沒有|不)[\u4e00-\u9fa5]{0,3}(?:毛孩|狗|貓|寵物|小孩|小朋友|嬰兒|寶寶|兒童|慶生|生日|包場|包廂)/g, '');
+
+      const hasPets = /毛孩|狗|貓|寵物/.test(posMsg);
+      const hasChildren = /小孩|小朋友|嬰兒|寶寶|兒童/.test(posMsg);
+      const hasBirthday = /慶生|生日/.test(posMsg);
+      const isFullVenue = /包場/.test(roomRaw ? roomRaw.replace(/(?:無|沒|沒有|不).+/g, '') : posMsg);
+      const privateRoom = /包廂|包場/.test(roomRaw || '') && !/無|沒|沒有/.test(roomRaw || '');
+
+      D = { date, time, guests, name: nameRaw, phone: phoneRaw, hasPets, hasChildren, hasBirthday, isFullVenue, privateRoom };
+      renderResult();
+    }
+
+    function extractField(text, keys) {
+      for (const key of keys) {
+        const re = new RegExp(key + '[：:／/]?\\s*([^\\n]+)', 'i');
+        const m = text.match(re);
+        if (m) return m[1].trim();
+      }
+      return null;
+    }
+
+    function extractDigits(str) {
+      if (!str) return null;
+      const m = str.match(/\d+/);
+      return m ? m[0] : null;
+    }
+
+    function parseDatetime(raw) {
+      if (!raw) return { date: null, time: null };
+
+      // 時間：HH:MM 或 H點M 或 晚上/早上/中午+數字
+      let time = null;
+      const timeMatch = raw.match(/(\d{1,2})[：:點](\d{0,2})/);
+      if (timeMatch) {
+        let h = parseInt(timeMatch[1]);
+        const mn = timeMatch[2] ? timeMatch[2].padEnd(2, '0') : '00';
+        // 若有「下午/晚上/中午」且小時<12，加12
+        if (/下午|晚上|夜/.test(raw) && h < 12) h += 12;
+        if (/中午/.test(raw) && h < 12) h = 12;
+        time = String(h).padStart(2, '0') + ':' + mn.slice(0, 2);
+      }
+      // 純數字時間如 1930
+      if (!time) {
+        const t2 = raw.match(/\b(1[0-9]|2[0-3]|[0-9]):([0-5][0-9])\b/);
+        if (t2) time = t2[0];
+      }
+
+      // 日期：M/D 或 M月D日
+      let date = null;
+      const year = new Date().getFullYear();
+      const d1 = raw.match(/(\d{1,2})[\/\-](\d{1,2})/);
+      if (d1) {
+        date = `${year}/${String(d1[1]).padStart(2, '0')}/${String(d1[2]).padStart(2, '0')}`;
+      }
+      const d2 = raw.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日號]/);
+      if (!date && d2) {
+        date = `${year}/${String(d2[1]).padStart(2, '0')}/${String(d2[2]).padStart(2, '0')}`;
+      }
+
+      return { date, time };
+    }
+
+    // ── Render ────────────────────────────────────────────────
+    function renderResult() {
+      const d = D;
+      const privateRoomText = d.privateRoom ? (d.isFullVenue ? '包場' : '包廂') : '無';
+      const childPetArr = [];
+      if (d.hasPets) childPetArr.push('含毛孩');
+      if (d.hasChildren) childPetArr.push('含小孩');
+      const childPetText = childPetArr.length ? childPetArr.join('／') : '無';
+
+      const noteArr = [];
+      if (d.hasBirthday) noteArr.push('慶生');
+      const noteText = noteArr.length ? noteArr.join('／') : '';
+
+      // 可編輯資訊欄
+      const fields = [
+        { key: '日期', id: 'f_date', val: d.date ?? '' },
+        { key: '時間', id: 'f_time', val: d.time ?? '' },
+        { key: '人數', id: 'f_guests', val: (d.guests ?? '') + '位' },
+        { key: '姓名', id: 'f_name', val: d.name ?? '' },
+        { key: '聯絡方式', id: 'f_phone', val: d.phone ?? '' },
+        { key: '包廂／包場', id: 'f_room', val: privateRoomText },
+        { key: '毛孩／小孩', id: 'f_childpet', val: childPetText },
+        { key: '備註', id: 'f_note', val: noteText },
+      ];
+
+      document.getElementById('infoRows').innerHTML = fields.map(f =>
+        `<div class="info-row">
+      <div class="info-key">${f.key}</div>
+      <div class="info-val">
+        <input class="edit-field" id="${f.id}" value="${f.val}" onchange="refreshOutput()" onkeyup="refreshOutput()">
+      </div>
+    </div>`
+      ).join('');
+
+      refreshOutput();
+
+      document.getElementById('resultBlock').style.display = 'block';
+      document.getElementById('inputCard').style.display = 'none';
+      document.getElementById('parseBtn').style.display = 'none';
+      setTimeout(() => document.getElementById('resultBlock').scrollIntoView({ behavior: 'smooth' }), 100);
+    }
+
+    function refreshOutput() {
+      const date = val('f_date');
+      const time = val('f_time');
+      const guests = val('f_guests');
+      const name = val('f_name');
+      const phone = val('f_phone');
+      const room = val('f_room');
+      const childpet = val('f_childpet');
+      const note = val('f_note');
+
+      // 動態偵測對應文字來顯示 Emoji
+      const emojis = [];
+      if (/毛孩|狗|貓|寵物/.test(childpet) || /毛孩|狗|貓|寵物/.test(note)) emojis.push('🐶');
+      if (/小孩|兒|嬰|寶寶|孩/.test(childpet) || /小孩|兒|嬰|寶寶|孩/.test(note)) emojis.push('👶');
+      if (/慶生|生日/.test(note) || /慶生|生日/.test(childpet)) emojis.push('🎂');
+      if (/包場/.test(room) || /包場/.test(note)) emojis.push('🎉');
+      const emojiStr = emojis.join('');
+
+      const guestsWithEmoji = guests + (emojiStr ? ' ' + emojiStr : '');
+
+      // Line reply
+      const reply =
+        `您好，您的訂位已建立，資訊如下：
+
+日期時間｜${date}${time ? ' ' + time : ''}
+人數｜${guestsWithEmoji}
+姓名｜${name}
+聯絡方式｜${phone}
+包廂／包場｜${room}　含毛孩／小孩｜${childpet}${note ? '\n備註｜' + note : ''}
+
+如需調整，歡迎隨時告知，謝謝。`;
+
+      document.getElementById('replyText').textContent = reply;
+
+      // Calendar title
+      const guestsNum = guests.match(/\d+/) ? guests.match(/\d+/)[0] : guests;
+      const calTitle = `${time}｜${guestsNum}位｜${name}` + (emojiStr ? ' ' + emojiStr : '');
+      document.getElementById('calTitle').textContent = calTitle;
+
+      // Color
+      let colorName = '一般訂位（藍色）', colorHex = '#4A90D9', calColorId = '9';
+      if (/包場/.test(room)) {
+        colorName = '包場（番茄紅）'; colorHex = '#D94040'; calColorId = '11';
+      } else if (isPeakTime(date, time)) {
+        colorName = '高峰時段（橘色）'; colorHex = '#E07820'; calColorId = '6';
+      }
+      const calDesc = `人數｜${guestsWithEmoji}
+聯絡方式｜${phone}
+包廂／包場｜${room}　含毛孩／小孩｜${childpet}${note ? '\n備註｜' + note : ''}`;
+
+      document.getElementById('colorBadge').innerHTML =
+        `<div class="color-badge"><div class="color-dot" style="background:${colorHex}"></div>${colorName}</div>`;
+
+      D._reply = reply;
+      D._calTitle = calTitle;
+      D._calDesc = calDesc;
+      D._calColorId = calColorId;
+      D._time = time;
+      D._date = date;
+    }
+
+    function val(id) {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : '';
+    }
+
+    function isPeakTime(dateStr, timeStr) {
+      if (!dateStr || !timeStr) return false;
+      try {
+        const d = new Date(dateStr.replace(/\//g, '-'));
+        const dow = d.getDay();
+        const h = parseInt(timeStr.split(':')[0]);
+        return (dow === 0 || dow === 5 || dow === 6) && h >= 11 && h < 16;
+      } catch { return false; }
+    }
+
+    // ── Calendar ──────────────────────────────────────────────
+    async function addToCalendar() {
+      const dateStr = (D._date ?? '').replace(/\//g, '-');
+      const timeStr = D._time ?? '12:00';
+      if (!dateStr || !timeStr) { showError('請確認日期與時間欄位'); return; }
+
+      const [h, m] = timeStr.split(':').map(Number);
+      const endMin = h * 60 + m + 90;
+      const endH = String(Math.floor(endMin / 60) % 24).padStart(2, '0');
+      const endM = String(endMin % 60).padStart(2, '0');
+
+      const reminderMins = 10 * 60 + 30;
+      const eventMins = h * 60 + m;
+      const minutesBefore = eventMins > reminderMins ? eventMins - reminderMins : (24 * 60 - reminderMins) + eventMins;
+
+      // 備用方案：開啟 Google Calendar 網頁版，資料全部帶好
+      const openWebCalendarFallback = () => {
+        // 使用台灣時間直接組字串，避免時區轉換跑掉
+        const fmt = (dateS, timeS) => dateS.replace(/-/g, '') + 'T' + timeS.replace(':', '') + '00';
+        const endTimeStr = endH + ':' + endM;
+        const params = new URLSearchParams({
+          action: 'TEMPLATE',
+          text: D._calTitle,
+          details: D._calDesc ?? '',
+          dates: fmt(dateStr, timeStr) + '/' + fmt(dateStr, endTimeStr),
+          ctz: 'Asia/Taipei'
+        });
+        window.open('https://calendar.google.com/calendar/render?' + params.toString(), '_blank');
+        // 更新按鈕狀態
+        const btn = document.getElementById('calBtn');
+        btn.textContent = '✓ 已開啟網頁';
+        btn.style.background = '#2E7D52';
+        btn.style.borderColor = '#2E7D52';
+        btn.disabled = true;
+      };
+
+      // 未授權 → 直接用網頁版，不顯示錯誤
+      if (!accessToken) {
+        openWebCalendarFallback();
+        return;
+      }
+
+      // 已授權 → 嘗試 API 自動建立
+      const event = {
+        summary: D._calTitle,
+        description: D._calDesc,
+        start: { dateTime: `${dateStr}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00+08:00`, timeZone: 'Asia/Taipei' },
+        end: { dateTime: `${dateStr}T${endH}:${endM}:00+08:00`, timeZone: 'Asia/Taipei' },
+        colorId: D._calColorId,
+        reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: minutesBefore }] }
+      };
+
+      try {
+        const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(event)
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || '建立失敗'); }
+        // API 成功
+        const btn = document.getElementById('calBtn');
+        btn.textContent = '✓ 已建立';
+        btn.style.background = '#2E7D52';
+        btn.style.borderColor = '#2E7D52';
+        btn.disabled = true;
+      } catch (e) {
+        // API 失敗 → 自動降級開網頁版
+        openWebCalendarFallback();
+      }
+    }
+
+    // ── Copy ──────────────────────────────────────────────────
+    function copyReply() {
+      navigator.clipboard.writeText(D._reply).then(() => {
+        const btn = document.getElementById('copyReplyBtn');
+        btn.textContent = '✓ 已複製'; btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = '複製訊息'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+    function copyCalTitle() {
+      navigator.clipboard.writeText(D._calTitle).then(() => {
+        const btn = document.querySelector('.btn-copy-cal');
+        btn.textContent = '✓ 已複製';
+        setTimeout(() => { btn.textContent = '複製標題文字'; }, 2000);
+      });
+    }
+
+    // ── Utils ─────────────────────────────────────────────────
+    function showError(msg) { const e = document.getElementById('errorMsg'); e.textContent = msg; e.style.display = 'block'; }
+    function hideError() { document.getElementById('errorMsg').style.display = 'none'; }
+    function resetAll() {
+      D = {};
+      document.getElementById('msgInput').value = '';
+      document.getElementById('resultBlock').style.display = 'none';
+      document.getElementById('inputCard').style.display = 'block';
+      document.getElementById('parseBtn').style.display = 'block';
+      document.getElementById('parseBtn').disabled = false;
+      const calBtn = document.getElementById('calBtn');
+      calBtn.textContent = '新增日曆'; calBtn.style.background = ''; calBtn.style.borderColor = ''; calBtn.disabled = false;
+      document.getElementById('copyReplyBtn').textContent = '複製訊息';
+      document.getElementById('copyReplyBtn').classList.remove('copied');
+      hideError();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+
+</html>

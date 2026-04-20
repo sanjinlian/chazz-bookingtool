@@ -545,8 +545,8 @@
 
       const posMsg = fullText.replace(/(?:無|沒|沒有|不)[\u4e00-\u9fa5]{0,3}(?:毛孩|狗|貓|寵物|小孩|小朋友|嬰兒|寶寶|兒童|慶生|生日|包場|包廂)/g, '');
 
-      const hasPets = /毛孩|狗|貓|寵物/.test(posMsg);
-      const hasChildren = /小孩|小朋友|嬰兒|寶寶|兒童/.test(posMsg);
+      const hasPets = /毛孩|狗|貓|寵物/.test(roomRaw ? roomRaw.replace(/(?:無|沒|沒有|不).+/g, '') : posMsg);
+      const hasChildren = /小孩|小朋友|嬰兒|寶寶|兒童/.test(roomRaw ? roomRaw.replace(/(?:無|沒|沒有|不).+/g, '') : posMsg);
       const hasBirthday = /慶生|生日/.test(posMsg);
       const isFullVenue = /包場/.test(roomRaw ? roomRaw.replace(/(?:無|沒|沒有|不).+/g, '') : posMsg);
       const privateRoom = /包廂|包場/.test(roomRaw || '') && !/無|沒|沒有/.test(roomRaw || '');
@@ -675,7 +675,8 @@
 人數｜${guestsWithEmoji}
 姓名｜${name}
 聯絡方式｜${phone}
-包廂／包場｜${room}　含毛孩／小孩｜${childpet}${note ? '\n備註｜' + note : ''}
+包廂／包場｜${room}　
+含毛孩／小孩｜${childpet}${note ? '\n備註｜' + note : ''}
 
 如需調整，歡迎隨時告知，謝謝。`;
 

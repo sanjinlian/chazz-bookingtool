@@ -538,18 +538,20 @@
       const guests = guestsMatch ? guestsMatch[1] : extractDigits(guestsRaw);
 
       // 特殊需求偵測（排除「無/沒/沒有/不」等否定句，避免「沒有狗狗」被誤判）
-      // 同時過清掉固定版型裡的提示文字，如「（是否有毛孩小孩）」
+      // 同時過濾掉固定版型裡的提示文字，如「（是否有毛孩小孩）」
       const fullText = msg.toLowerCase()
-        .replace(/[\(（]是否有毛孩小孩[\)）]/g, '')
-        .replace(/[\(（]有[／\/]無[\)）]/g, '');
+        .replace(/[\(（].*?[\)）]/g, ''); // 移除所有括號內的提示（如：是否有毛孩小孩）
 
-      const posMsg = fullText.replace(/(?:無|沒|沒有|不)[\u4e00-\u9fa5]{0,3}(?:毛孩|狗|貓|寵物|小孩|小朋友|嬰兒|寶寶|兒童|慶生|生日|包場|包廂)/g, '');
+      // 建立一個更強大的負面詞排除正則，支援空格、標點與多樣連詞
+      // match: 沒有 狗狗, 無 寵物, 不含小孩 等
+      const negRe = /(?:無|沒|沒有|不|不含|非)[\s：:／/]*?(?:毛孩|狗|貓|寵物|小孩|小朋友|嬰兒|寶寶|兒童|慶生|生日|包場|包廂)/g;
+      const posMsg = fullText.replace(negRe, '');
 
-      const hasPets = /毛孩|狗|貓|寵物/.test(roomRaw ? roomRaw.replace(/(?:無|沒|沒有|不).+/g, '') : posMsg);
-      const hasChildren = /小孩|小朋友|嬰兒|寶寶|兒童/.test(roomRaw ? roomRaw.replace(/(?:無|沒|沒有|不).+/g, '') : posMsg);
+      const hasPets = /毛孩|狗|貓|寵物/.test(posMsg);
+      const hasChildren = /小孩|小朋友|嬰兒|寶寶|兒童/.test(posMsg);
       const hasBirthday = /慶生|生日/.test(posMsg);
-      const isFullVenue = /包場/.test(roomRaw ? roomRaw.replace(/(?:無|沒|沒有|不).+/g, '') : posMsg);
-      const privateRoom = /包廂|包場/.test(roomRaw || '') && !/無|沒|沒有/.test(roomRaw || '');
+      const isFullVenue = /包場/.test(roomRaw ? roomRaw.replace(negRe, '') : posMsg);
+      const privateRoom = /包廂|包場/.test(roomRaw || '') && !/(?:無|沒|沒有|不)/.test(roomRaw || '');
 
       D = { date, time, guests, name: nameRaw, phone: phoneRaw, hasPets, hasChildren, hasBirthday, isFullVenue, privateRoom };
       renderResult();
@@ -590,13 +592,22 @@
         if (t2) time = t2[0];
       }
 
-      // 日期：M/D 或 M月D日
+      // 日期：支援 YYYY/M/D, M/D 或 M月D日
       let date = null;
       const year = new Date().getFullYear();
-      const d1 = raw.match(/(\d{1,2})[\/\-](\d{1,2})/);
-      if (d1) {
-        date = `${year}/${String(d1[1]).padStart(2, '0')}/${String(d1[2]).padStart(2, '0')}`;
+
+      // 先查是否有帶年份的 YYYY/MM/DD
+      const dLong = raw.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+      if (dLong) {
+        date = `${dLong[1]}/${String(dLong[2]).padStart(2, '0')}/${String(dLong[3]).padStart(2, '0')}`;
+      } else {
+        // 再查 M/D，但要確保不是前面有斜線（避免抓到年份後兩位）
+        const d1 = raw.match(/(?:\b|(?!\d{4}\/))(\d{1,2})[\/\-](\d{1,2})\b/);
+        if (d1) {
+          date = `${year}/${String(d1[1]).padStart(2, '0')}/${String(d1[2]).padStart(2, '0')}`;
+        }
       }
+
       const d2 = raw.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日號]/);
       if (!date && d2) {
         date = `${year}/${String(d2[1]).padStart(2, '0')}/${String(d2[2]).padStart(2, '0')}`;
@@ -675,8 +686,7 @@
 人數｜${guestsWithEmoji}
 姓名｜${name}
 聯絡方式｜${phone}
-包廂／包場｜${room}　
-含毛孩／小孩｜${childpet}${note ? '\n備註｜' + note : ''}
+包廂／包場｜${room}　含毛孩／小孩｜${childpet}${note ? '\n備註｜' + note : ''}
 
 如需調整，歡迎隨時告知，謝謝。`;
 
